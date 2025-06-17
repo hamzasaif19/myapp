@@ -1,9 +1,7 @@
-name: CI - Docker Build
+name: CI - Build & Push to Docker Hub
 
 on:
   push:
-    branches: [main]
-  pull_request:
     branches: [main]
 
 jobs:
@@ -14,19 +12,18 @@ jobs:
       - name: 🔄 Checkout code
         uses: actions/checkout@v3
 
-      - name: 🐳 Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: 🔍 Cache Docker layers
-        uses: actions/cache@v3
+      - name: 🔑 Log in to Docker Hub
+        uses: docker/login-action@v3
         with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: 🛠️ Build backend image
-        run: docker build -t backend-test ./backend
+      - name: 🐳 Build and push backend image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/myapp-backend:latest ./backend
+          docker push ${{ secrets.DOCKER_USERNAME }}/myapp-backend:latest
 
-      - name: 🛠️ Build frontend image
-        run: docker build -t frontend-test ./frontend
+      - name: 🐳 Build and push frontend image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/myapp-frontend:latest ./frontend
+          docker push ${{ secrets.DOCKER_USERNAME }}/myapp-frontend:latest
